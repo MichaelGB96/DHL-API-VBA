@@ -1,7 +1,7 @@
 Attribute VB_Name = "GetTrackingInfo"
-' DHL API Connection Macro Version 1.0.0
+' DHL API Connection Macro Version 1.0.1
 ' Created on 31/08/2023
-' Updated on 03/09/2023
+' Updated on 04/09/2023
 '
 ' API documentation available on: https://developer.dhl.com/api-reference/shipment-tracking#reference-docs-section/
 '
@@ -21,6 +21,7 @@ Option Explicit
 
     ' Declaración de variables
     Dim strApiKey As String
+    Dim variableName As String
     Dim strUrl As String
     Dim blnAsync As Boolean
     Dim objRequest As Object
@@ -34,7 +35,8 @@ Function DhlApiRequest(ByVal trackingNumber As String) As String
     Set objRequest = CreateObject("MSXML2.ServerXMLHTTP.6.0")
 
     ' Configurar el API key y el URL del request
-    strApiKey = "PzAKAnTldAXyqC9w4HO03LqUijJ8bOA0" 'Introducir la API Key
+    variableName = "My-DHL-API-Key"
+    strApiKey = Environ(variableName) 'Introducir la API Key guardada en variables de entorno
     strUrl = "https://api-eu.dhl.com/track/shipments" 'API Endpoint
 
     ' Construir la URL de la petición a la API con el tracking
