@@ -133,6 +133,7 @@ Function InputResultIntoSheet(ByVal result As String) As Boolean
     Dim status As String
     Dim deliveryDay As String
     Dim deliveryHour As String
+    Dim deliveryETA As String
     ' Parsear la respuesta que viene en formato JSON
     Set json = JsonConverter.ParseJson(result)
 
@@ -147,6 +148,12 @@ Function InputResultIntoSheet(ByVal result As String) As Boolean
         deliveryDay = Left(json("shipments")(1)("status")("timestamp"), 10)
         deliveryHour = Mid(json("shipments")(1)("status")("timestamp"), 12)
         
+        If status = "transit" Then ' Si está en tránsito, informar del ETA
+            
+            deliveryETA = "ETA " & json("shipments")(1)("estimatedTimeOfDelivery") & " " & json("shipments")(1)("estimatedTimeOfDeliveryRemark")
+        
+        End If
+        
     End If
         
     
@@ -157,12 +164,14 @@ Function InputResultIntoSheet(ByVal result As String) As Boolean
     Dim statusCell As Range
     Dim delDayCell As Range
     Dim delTimeCell As Range
+    Dim commCell As Range
     
     ' Definición de las celdas
     Set trackingCell = Selection
     Set statusCell = ActiveCell.Offset(0, 2)
     Set delDayCell = ActiveCell.Offset(0, 3)
     Set delTimeCell = ActiveCell.Offset(0, 4)
+    Set commCell = ActiveCell.Offset(0, 6)
     
     ' Introducción de datos
     If service = "express" Then ' Solo intrudocir datos en Excel para pedidos con servicio express
@@ -171,10 +180,11 @@ Function InputResultIntoSheet(ByVal result As String) As Boolean
             statusCell.Value = "Entregado"
             delDayCell.Value = deliveryDay
             delTimeCell.Value = deliveryHour
-        ElseIf status = "on hold" Then
-            statusCell.Value = "Retraso"
-        Else
+        ElseIf status = "transit" Then
             statusCell.Value = "En tránsito"
+            commCell.Value = deliveryETA
+        Else
+            statusCell.Value = "Retraso"
         End If
         
         InputResultIntoSheet = True
