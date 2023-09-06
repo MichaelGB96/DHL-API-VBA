@@ -103,9 +103,18 @@ Attribute GetTrackingInfo.VB_ProcData.VB_Invoke_Func = "y\n14"
         ' Obtener los datos del envío de la API
         result = DhlApiRequest(trackingNumber)
         ' Introducir los datos en Excel
-        If InputResultIntoSheet(result) Then
-            Debug.Print "Datos introducidos"
+        If result <> "Error: 404 - Not Found" Then ' Comprobar tracking erróneos
+                
+            If InputResultIntoSheet(result) Then
+                Debug.Print "Datos introducidos"
+            Else
+                MsgBox ("El número de tracking no es un servicio express")
+            End If
+        
+        Else
+            MsgBox ("Lo sentimos, su intento de rastreo no se realizó correctamente. Compruebe su número de seguimiento.")
         End If
+            
     Else
         Debug.Print "La celda está vacía"
     End If
@@ -118,6 +127,7 @@ Function InputResultIntoSheet(ByVal result As String) As Boolean
     
     ' Declaración de variables
     Dim json As Object
+    Dim service As String
     Dim origin As String
     Dim destination As String
     Dim status As String
@@ -127,12 +137,18 @@ Function InputResultIntoSheet(ByVal result As String) As Boolean
     Set json = JsonConverter.ParseJson(result)
 
     ' Acceder a información específica en la respuesta JSON
-
-    origin = json("shipments")(1)("origin")("address")("addressLocality")
-    destination = json("shipments")(1)("destination")("address")("addressLocality")
-    status = json("shipments")(1)("status")("status")
-    deliveryDay = Left(json("shipments")(1)("status")("timestamp"), 10)
-    deliveryHour = Mid(json("shipments")(1)("status")("timestamp"), 12)
+    
+    service = json("shipments")(1)("service")
+    If service = "express" Then
+    
+        origin = json("shipments")(1)("origin")("address")("addressLocality")
+        destination = json("shipments")(1)("destination")("address")("addressLocality")
+        status = json("shipments")(1)("status")("status")
+        deliveryDay = Left(json("shipments")(1)("status")("timestamp"), 10)
+        deliveryHour = Mid(json("shipments")(1)("status")("timestamp"), 12)
+        
+    End If
+        
     
 ' --- Introducción de la información en la hoja de Excel ---
 
@@ -149,16 +165,25 @@ Function InputResultIntoSheet(ByVal result As String) As Boolean
     Set delTimeCell = ActiveCell.Offset(0, 4)
     
     ' Introducción de datos
-    If status = "delivered" Then
-        statusCell.Value = "Entregado"
-    ElseIf status = "on hold" Then
-        statusCell.Value = "Retraso"
-    Else
-        statusCell.Value = "En tránsito"
-    End If
-    delDayCell.Value = deliveryDay
-    delTimeCell.Value = deliveryHour
+    If service = "express" Then ' Solo intrudocir datos en Excel para pedidos con servicio express
     
-    InputResultIntoSheet = True
+        If status = "delivered" Then
+            statusCell.Value = "Entregado"
+            delDayCell.Value = deliveryDay
+            delTimeCell.Value = deliveryHour
+        ElseIf status = "on hold" Then
+            statusCell.Value = "Retraso"
+        Else
+            statusCell.Value = "En tránsito"
+        End If
+        
+        InputResultIntoSheet = True
+        
+    Else
+        
+        InputResultIntoSheet = False
+    
+    End If
+    
 
 End Function
