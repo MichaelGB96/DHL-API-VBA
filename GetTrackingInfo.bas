@@ -16,6 +16,10 @@ Attribute VB_Name = "GetTrackingInfo"
 ' Microsoft XML, v6.0
 ' Microsoft Scripting Runtime
 '----------------------------
+'
+' Author: Miguel Gómez
+' email: mikegomezb96@gmail.com
+' github: MichaelGB96
 
 Option Explicit
 
@@ -94,12 +98,16 @@ Attribute GetTrackingInfo.VB_ProcData.VB_Invoke_Func = "y\n14"
     Dim trackingCell As Range
     Dim trackingNumber As String
     Dim result As String
+    Dim msgbxTitle As String
+    Dim msgbxResult As String
     
     ' Introducir el tracking number del que se quiere realizar seguimiento
     Set trackingCell = Selection
     trackingNumber = trackingCell.Value
     
-    If trackingNumber <> "" Then
+    If Len(trackingNumber) = 10 Then
+    
+        msgbxTitle = "DHL Tracking"
         ' Obtener los datos del envío de la API
         result = DhlApiRequest(trackingNumber)
         ' Introducir los datos en Excel
@@ -108,15 +116,16 @@ Attribute GetTrackingInfo.VB_ProcData.VB_Invoke_Func = "y\n14"
             If InputResultIntoSheet(result) Then
                 Debug.Print "Datos introducidos"
             Else
-                MsgBox ("El número de tracking no es un servicio express")
+                msgbxResult = MsgBox("El número de tracking no es un servicio express", 0, msgbxTitle)
             End If
         
         Else
-            MsgBox ("Lo sentimos, su intento de rastreo no se realizó correctamente. Compruebe su número de seguimiento.")
+            msgbxResult = MsgBox("Lo sentimos, su intento de rastreo no se realizó correctamente. Compruebe su número de seguimiento.", 0, msgbxTitle)
         End If
             
     Else
-        Debug.Print "La celda está vacía"
+        msgbxTitle = "Tracking"
+        msgbxResult = MsgBox("Número de seguimiento incorrecto.", 0, msgbxTitle)
     End If
 
 End Sub
